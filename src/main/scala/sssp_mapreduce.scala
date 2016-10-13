@@ -24,7 +24,7 @@ object sssp_mapreduce {
     val src = 0.toString()
 
     // initialize adjacency list
-    val adjacency = graph.map( line => (line._1._1, (line._1._2, line._2)) )
+    var adjacency = graph.map(line => (line._1._1, (line._1._2, line._2)))
       .groupByKey()
       .mapValues(_.toList)
       .map{ line =>
@@ -34,8 +34,8 @@ object sssp_mapreduce {
           (line._1,(Int.MaxValue,line._2))
         }
       }
-
     adjacency.foreach(println)
+
 
     // flatMap
     val distanceFlat = adjacency.flatMap{ line =>
@@ -59,9 +59,27 @@ object sssp_mapreduce {
         val res = y
         res
       }
+    }.map { x =>
+      val l = List[(String, String)]()
+      (x._1, (x._2, l))
     }
     distance.foreach(println)
 
+    // union and update new adjacency
+    val newadjacency = distance.union(adjacency).reduceByKey { (x, y) =>
+      if (x._1.toInt < y._1.toInt) {
+        val res = x._1.toInt
+        val arr = x._2 ++ y._2
+        (res, arr)
+      } else {
+        val res = y._1.toInt
+        val arr = x._2 ++ y._2
+        (res, arr)
+      }
+    }
+    newadjacency.foreach(println)
+
+    adjacency = newadjacency
 
 
   }
